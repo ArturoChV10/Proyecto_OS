@@ -1,0 +1,8 @@
+Para ejecutar desde powershell con wsl
+wsl -d ubuntu
+cd ~
+cd proyecto_os_wsl
+nano project1.c // Si se quiere editar
+gcc -pthread -o nombreEscogido project1.c
+./nombreEscogido /mnt/d/Users/chava/Downloads/TestOS/Origen /mnt/d/Users/chava/Downloads/TestOS/Destino 3 
+./<nombre> <origen> <destino> <cantidad de hilos>
