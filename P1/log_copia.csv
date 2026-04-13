@@ -1,0 +1,7 @@
+archivo,hilo_id,tiempo_ms
+./Pruebas/Dir_origen/archivo_3.txt,0,0.301
+./Pruebas/Dir_origen/archivo_1 copy.txt,1,0.324
+./Pruebas/Dir_origen/archivo_2 copy.txt,2,0.345
+./Pruebas/Dir_origen/archivo_1.txt,0,0.082
+./Pruebas/Dir_origen/archivo_3 copy.txt,1,0.083
+./Pruebas/Dir_origen/archivo_2.txt,2,0.095
