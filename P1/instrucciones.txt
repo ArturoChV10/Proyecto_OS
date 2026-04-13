@@ -1,3 +1,7 @@
+-------------------------------
+          Desde Windows
+-------------------------------
+
 Para ejecutar desde powershell con wsl
 wsl -d ubuntu
 cd ~
@@ -8,8 +12,12 @@ gcc -pthread -o nombreEscogido project1.c
 ./<nombre> <origen> <destino> <cantidad de hilos>
 
 
+
+
+
+
 -------------------------------
-          Para ubuntu
+          Desde Ubuntu
 -------------------------------
 
 
@@ -19,4 +27,4 @@ En caso de tener el sistema operativo de Ubuntu, se le dice al compilador gcc qu
 
 Y para ejecutarlo se hace lo siguiente:
 
-    ./<nombre_programa> <origen> <destino> 
+    ./<nombre_programa> <origen> <destino> <cantidad de hilos> 
