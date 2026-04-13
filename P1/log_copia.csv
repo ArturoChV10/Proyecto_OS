@@ -1,5 +1,0 @@
-archivo,hilo_id,tiempo_ms
-./Pruebas/Dir_origen/dir_1/archivo_1.txt,0,0.203
-./Pruebas/Dir_origen/dir_3/archivo_3.txt,2,0.164
-./Pruebas/Dir_origen/dir_4/archivo_4.txt,3,0.130
-./Pruebas/Dir_origen/dir_2/archivo_2.txt,1,0.269
