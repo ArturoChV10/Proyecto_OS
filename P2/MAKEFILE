@@ -1,0 +1,38 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -g
+SRCDIR = src
+
+# Target principal (lo construimos en etapas siguientes)
+# all: jqindex
+
+# Target de prueba del parser
+test_parser: $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
+	$(CC) $(CFLAGS) -o test_parser $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
+
+clean:
+	rm -f test_parser jqindex
+
+.PHONY: clean
+
+
+# DESCOMENTAR EN SEGUNDA ITERACIÓN
+# CC = gcc
+# CFLAGS = -Wall -Wextra -g
+# SRCDIR = src
+ 
+# # Target principal (lo construimos en etapas siguientes)
+# # all: jqindex
+ 
+# # Target de prueba del parser
+# test_parser: $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
+# 	$(CC) $(CFLAGS) -o test_parser $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
+ 
+# # Target de prueba del indexador (parser + indexer juntos)
+# test_indexer: $(SRCDIR)/test_indexer.c $(SRCDIR)/json_parser.c $(SRCDIR)/indexer.c
+# 	$(CC) $(CFLAGS) -o test_indexer $(SRCDIR)/test_indexer.c $(SRCDIR)/json_parser.c $(SRCDIR)/indexer.c
+ 
+# clean:
+# 	rm -f test_parser test_indexer jqindex
+# 	rm -f tests/*.jnx
+ 
+# .PHONY: clean
