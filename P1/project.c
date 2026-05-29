@@ -8,17 +8,19 @@
 #include <errno.h>
 #include <string.h>
 
-#define MAX_PATH 1024 // Tamaño de la dirección
-#define MAX_TAREAS 10000 // Cantidad de archivos
+#define MAX_PATH 1024     // Tamaño de la dirección
+#define MAX_TAREAS 10000  // Cantidad de archivos
 #define BUFFER_SIZE 65536 // Tamaño de archivos
 
 // Estructura que define tamaño
-typedef struct {
+typedef struct
+{
     char origen[MAX_PATH];
     char destino[MAX_PATH];
 } tarea_t;
 
-typedef struct {
+typedef struct
+{
     tarea_t buffer[MAX_TAREAS]; // Buffer para almacenar tareas
     int inicio;
     int fin;
@@ -36,7 +38,8 @@ pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 FILE *log_file = NULL;
 
 // Iniciar cola
-void cola_inicializar(cola_t *colaI) {
+void cola_inicializar(cola_t *colaI)
+{
     colaI->inicio = 0;
     colaI->fin = 0;
     colaI->count = 0;
@@ -46,9 +49,11 @@ void cola_inicializar(cola_t *colaI) {
 }
 
 // Insertar a cola
-void cola_insertar(cola_t *colaI, tarea_t *tarea) {
+void cola_insertar(cola_t *colaI, tarea_t *tarea)
+{
     pthread_mutex_lock(&colaI->mutex);
-    while (colaI->count == MAX_TAREAS) {
+    while (colaI->count == MAX_TAREAS)
+    {
         pthread_cond_wait(&colaI->cond_no_llena, &colaI->mutex);
     }
     colaI->buffer[colaI->fin] = *tarea;
@@ -59,12 +64,15 @@ void cola_insertar(cola_t *colaI, tarea_t *tarea) {
 }
 
 // Extraer tarea de la cola
-int cola_extraer(cola_t *colaI, tarea_t *tarea) {
+int cola_extraer(cola_t *colaI, tarea_t *tarea)
+{
     pthread_mutex_lock(&colaI->mutex);
-    while (colaI->count == 0 && !terminar) {
+    while (colaI->count == 0 && !terminar)
+    {
         pthread_cond_wait(&colaI->cond_no_vacia, &colaI->mutex);
     }
-    if (terminar && colaI->count == 0) {
+    if (terminar && colaI->count == 0)
+    {
         pthread_mutex_unlock(&colaI->mutex);
         return 0;
     }
@@ -77,17 +85,21 @@ int cola_extraer(cola_t *colaI, tarea_t *tarea) {
 }
 
 // Copiar archivo
-int copiar_archivo(const char *origen, const char *destino) {
+int copiar_archivo(const char *origen, const char *destino)
+{
     FILE *src = fopen(origen, "rb");
-    if (!src) return -1;
+    if (!src)
+        return -1;
     FILE *dst = fopen(destino, "wb");
-    if (!dst) {
+    if (!dst)
+    {
         fclose(src);
         return -1;
     }
     char buffer[BUFFER_SIZE];
     size_t bytes;
-    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0)
+    {
         fwrite(buffer, 1, bytes, dst);
     }
     fclose(src);
@@ -96,78 +108,93 @@ int copiar_archivo(const char *origen, const char *destino) {
 }
 
 // Función encargada de coordinar la copia de archivos, se puede considerar un tipo de trabajador
-void *copiador(void *arg) {
+void *copiador(void *arg)
+{
     long id = (long)arg;
     tarea_t tarea;
-    while (cola_extraer(&cola, &tarea)) {
-	struct stat st;
-	long tamano_bytes = 0;
-	if(stat(tarea.origen, &st) == 0) {
-	    tamano_bytes = st.st_size;
-	}
+    while (cola_extraer(&cola, &tarea))
+    {
+        struct stat st;
+        long tamano_bytes = 0;
+        if (stat(tarea.origen, &st) == 0)
+        {
+            tamano_bytes = st.st_size;
+        }
 
-	printf("Hilo %ld copiando: %s (%ld bytes)\n", id, tarea.origen, tamano_bytes); // Mostrando nombre y tamaño
+        printf("Hilo %ld copiando: %s (%ld bytes)\n", id, tarea.origen, tamano_bytes); // Mostrando nombre y tamaño
 
         // Crear directorio destino si no existe
         char dir_destino[MAX_PATH];
         strcpy(dir_destino, tarea.destino);
         char *p = strrchr(dir_destino, '/'); // Ultimo caracter '/'. Esto se hace porque se ocupa la dirección para copiar
-        if (p) {
+        if (p)
+        {
             *p = '\0';
             mkdir(dir_destino, 0777);
         }
 
-	struct timespec inicio, fin;
-	clock_gettime(CLOCK_MONOTONIC, &inicio);
-	int resultado = copiar_archivo(tarea.origen, tarea.destino);
-	clock_gettime(CLOCK_MONOTONIC, &fin);
+        struct timespec inicio, fin;
+        clock_gettime(CLOCK_MONOTONIC, &inicio);
+        int resultado = copiar_archivo(tarea.origen, tarea.destino);
+        clock_gettime(CLOCK_MONOTONIC, &fin);
 
-	if(resultado == 0) {
-	    double tiempo_ms = (fin.tv_sec - inicio.tv_sec) * 1000.0 +
+        if (resultado == 0)
+        {
+            double tiempo_ms = (fin.tv_sec - inicio.tv_sec) * 1000.0 +
                                (fin.tv_nsec - inicio.tv_nsec) / 1000000.0;
 
-	    pthread_mutex_lock(&log_mutex);
-	    if(log_file) {
-		fprintf(log_file, "%s,%ld,%.3f\n", tarea.origen, id, tiempo_ms);
+            pthread_mutex_lock(&log_mutex);
+            if (log_file)
+            {
+                fprintf(log_file, "%s,%ld,%.3f\n", tarea.origen, id, tiempo_ms);
                 fflush(log_file);
-	    }
-	    pthread_mutex_unlock(&log_mutex);
-	} else {
-	    fprintf(stderr, "Error copiando %s\n", tarea.origen);
-	}
+            }
+            pthread_mutex_unlock(&log_mutex);
+        }
+        else
+        {
+            fprintf(stderr, "Error copiando %s\n", tarea.origen);
+        }
         /*
-	if (copiar_archivo(tarea.origen, tarea.destino) == 0) {
+    if (copiar_archivo(tarea.origen, tarea.destino) == 0) {
             printf("Hilo %ld copio: %s\n", id, tarea.origen);
         } else {
             fprintf(stderr, "Error copiando %s\n", tarea.origen);
         }
-	*/
+    */
     }
     return NULL;
 }
 
 // Recorrer y listar archivos
-void listar_archivos(const char *origen, const char *destino_base) {
+void listar_archivos(const char *origen, const char *destino_base)
+{
     DIR *dir = opendir(origen);
-    if (!dir) {
+    if (!dir)
+    {
         perror("opendir");
         return;
     }
     struct dirent *entrada;
     char ruta_origen[1024];
     char ruta_destino[1024];
-    while ((entrada = readdir(dir)) != NULL) {
+    while ((entrada = readdir(dir)) != NULL)
+    {
         if (strcmp(entrada->d_name, ".") == 0 || strcmp(entrada->d_name, "..") == 0)
             continue;
         snprintf(ruta_origen, sizeof(ruta_origen), "%s/%s", origen, entrada->d_name);
         snprintf(ruta_destino, sizeof(ruta_destino), "%s/%s", destino_base, entrada->d_name);
         struct stat st;
-        if (stat(ruta_origen, &st) == 0) {
-            if (S_ISDIR(st.st_mode)) {
+        if (stat(ruta_origen, &st) == 0)
+        {
+            if (S_ISDIR(st.st_mode))
+            {
                 mkdir(ruta_destino, 0777);
                 listar_archivos(ruta_origen, ruta_destino);
-            } else {
-		tarea_t tareaActual;
+            }
+            else
+            {
+                tarea_t tareaActual;
                 strcpy(tareaActual.origen, ruta_origen);
                 strcpy(tareaActual.destino, ruta_destino);
                 cola_insertar(&cola, &tareaActual);
@@ -178,8 +205,10 @@ void listar_archivos(const char *origen, const char *destino_base) {
     closedir(dir);
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 3 || argc > 4) {
+int main(int argc, char *argv[])
+{
+    if (argc < 3 || argc > 4)
+    {
         fprintf(stderr, "Uso: %s <origen> <destino> [num_hilos]\n", argv[0]);
         return 1;
     }
@@ -187,9 +216,11 @@ int main(int argc, char *argv[]) {
     const char *origen = argv[1];
     const char *destino = argv[2];
     int num_hilos = 4;
-    if (argc == 4) {
+    if (argc == 4)
+    {
         num_hilos = atoi(argv[3]);
-        if (num_hilos < 1) num_hilos = 1;
+        if (num_hilos < 1)
+            num_hilos = 1;
     }
 
     printf("Origen: %s\n", origen);
@@ -200,7 +231,8 @@ int main(int argc, char *argv[]) {
 
     cola_inicializar(&cola);
     log_file = fopen("log_copia.csv", "w");
-    if (!log_file) {
+    if (!log_file)
+    {
         perror("fopen log");
         return 1;
     }
@@ -210,16 +242,17 @@ int main(int argc, char *argv[]) {
     struct timespec tiempo_inicio, tiempo_fin;
     clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
 
-
     listar_archivos(origen, destino);
 
     pthread_t hilos[num_hilos];
-    for (long i = 0; i < num_hilos; i++) {
-        pthread_create(&hilos[i], NULL, copiador, (void*)i);
+    for (long i = 0; i < num_hilos; i++)
+    {
+        pthread_create(&hilos[i], NULL, copiador, (void *)i);
     }
 
     pthread_mutex_lock(&cola.mutex);
-    while (cola.count > 0) {
+    while (cola.count > 0)
+    {
         pthread_cond_wait(&cola.cond_no_llena, &cola.mutex);
     }
 
@@ -228,7 +261,8 @@ int main(int argc, char *argv[]) {
     pthread_mutex_unlock(&cola.mutex);
 
     // Esperar que terminen los hilos
-    for (int i = 0; i < num_hilos; i++) {
+    for (int i = 0; i < num_hilos; i++)
+    {
         pthread_join(hilos[i], NULL);
     }
 
@@ -250,27 +284,30 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-/* Tests de aprendizaje
-void* tarea(void* arg) {
-    int id = *(int*)arg;
+// Tests de aprendizaje
+void *tarea(void *arg)
+{
+    int id = *(int *)arg;
     printf("Hilo %d: Hola desde el thread!\n", id);
     return NULL;
 }
 
-int main2() {
+int main2()
+{
     pthread_t hilos[3];
     int ids[3];
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         ids[i] = i;
         pthread_create(&hilos[i], NULL, tarea, &ids[i]);
     }
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         pthread_join(hilos[i], NULL);
     }
 
     printf("Todos los hilos terminaron.\n");
     return 0;
 }
-*/

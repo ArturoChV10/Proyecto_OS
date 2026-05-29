@@ -1,3 +1,7 @@
+-------------------------------
+          Desde Windows
+-------------------------------
+
 Para ejecutar desde powershell con wsl
 wsl -d ubuntu
 cd ~
@@ -6,3 +10,21 @@ nano project1.c // Si se quiere editar
 gcc -pthread -o nombreEscogido project1.c
 ./nombreEscogido /mnt/d/Users/chava/Downloads/TestOS/Origen /mnt/d/Users/chava/Downloads/TestOS/Destino 3 
 ./<nombre> <origen> <destino> <cantidad de hilos>
+
+
+
+
+
+
+-------------------------------
+          Desde Ubuntu
+-------------------------------
+
+
+En caso de tener el sistema operativo de Ubuntu, se le dice al compilador gcc que compile el codigo en c de la siguiente manera desde la raíz del proyecto:
+
+    gcc -pthread -o <nombre_programa> project.c
+
+Y para ejecutarlo se hace lo siguiente:
+
+    ./<nombre_programa> <origen> <destino> <cantidad de hilos> 
