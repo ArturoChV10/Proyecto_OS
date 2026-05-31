@@ -8,19 +8,15 @@
 /* ------------------------------------------------------------------ */
 
 /* Saltarse espacios, tabs, newlines */
-static void skip_whitespace(const char *buf, long *pos, long buf_size)
-{
-    while (*pos < buf_size && isspace((unsigned char)buf[*pos]))
-    {
+static void skip_whitespace(const char *buf, long *pos, long buf_size) {
+    while (*pos < buf_size && isspace((unsigned char)buf[*pos])) {
         (*pos)++;
     }
 }
 
 /* Registrar una entrada en el resultado */
-static void add_entry(IndexResult *result, const char *path, long inicio, long fin)
-{
-    if (result->count >= MAX_ENTRIES)
-    {
+static void add_entry(IndexResult *result, const char *path, long inicio, long fin) {
+    if (result->count >= MAX_ENTRIES) {
         fprintf(stderr, "WARNING: se alcanzo el limite de entradas del indice\n");
         return;
     }
@@ -33,18 +29,14 @@ static void add_entry(IndexResult *result, const char *path, long inicio, long f
 
 /* Avanzar hasta el final de un string JSON (ya estamos parados en la " de apertura).
    Retorna la posicion del " de cierre. */
-static long find_string_end(const char *buf, long pos, long buf_size)
-{
+static long find_string_end(const char *buf, long pos, long buf_size) {
     pos++; /* saltamos la " de apertura */
-    while (pos < buf_size)
-    {
-        if (buf[pos] == '\\')
-        {
+    while (pos < buf_size) {
+        if (buf[pos] == '\\') {
             pos += 2; /* escape, saltamos el siguiente char tambien */
             continue;
         }
-        if (buf[pos] == '"')
-        {
+        if (buf[pos] == '"') {
             return pos; /* encontramos el cierre */
         }
         pos++;
@@ -54,18 +46,13 @@ static long find_string_end(const char *buf, long pos, long buf_size)
 
 /* Avanzar hasta el final de un numero JSON.
    Retorna la posicion del ultimo digito/caracter del numero. */
-static long find_number_end(const char *buf, long pos, long buf_size)
-{
+static long find_number_end(const char *buf, long pos, long buf_size) {
     /* Un numero puede tener: digitos, punto, signo, e/E */
-    while (pos < buf_size)
-    {
+    while (pos < buf_size) {
         char c = buf[pos];
-        if (isdigit((unsigned char)c) || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
-        {
+        if (isdigit((unsigned char)c) || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E') {
             pos++;
-        }
-        else
-        {
+        } else {
             break;
         }
     }
@@ -75,25 +62,20 @@ static long find_number_end(const char *buf, long pos, long buf_size)
 /* Encontrar el fin de un objeto {} o array [] balanceado.
    pos debe apuntar al { o [ de apertura.
    Retorna la posicion del } o ] de cierre. */
-static long find_block_end(const char *buf, long pos, long buf_size)
-{
+static long find_block_end(const char *buf, long pos, long buf_size) {
     char open_char = buf[pos];
     char close_char = (open_char == '{') ? '}' : ']';
     int depth = 1;
     pos++;
 
-    while (pos < buf_size && depth > 0)
-    {
+    while (pos < buf_size && depth > 0) {
         /* Si estamos dentro de un string, saltarlo completo para no confundir llaves dentro de strings */
-        if (buf[pos] == '"')
-        {
+        if (buf[pos] == '"') {
             pos = find_string_end(buf, pos, buf_size) + 1;
             continue;
         }
-        if (buf[pos] == open_char)
-            depth++;
-        else if (buf[pos] == close_char)
-            depth--;
+        if (buf[pos] == open_char) depth++;
+        else if (buf[pos] == close_char) depth--;
         pos++;
     }
     return pos - 1; /* el } o ] de cierre */
@@ -108,18 +90,15 @@ static void parse_value(const char *buf, long *pos, long buf_size,
                         const char *current_path, IndexResult *result);
 
 /* Leer la clave de un objeto: avanza pos mas alla de las comillas y devuelve la clave */
-static void read_key(const char *buf, long *pos, long buf_size, char *key_out, int key_max)
-{
+static void read_key(const char *buf, long *pos, long buf_size, char *key_out, int key_max) {
     skip_whitespace(buf, pos, buf_size);
-    if (buf[*pos] != '"')
-        return; /* no deberia pasar */
+    if (buf[*pos] != '"') return; /* no deberia pasar */
 
     long end = find_string_end(buf, *pos, buf_size);
     long key_start = *pos + 1;
     long key_len = end - key_start;
 
-    if (key_len >= key_max)
-        key_len = key_max - 1;
+    if (key_len >= key_max) key_len = key_max - 1;
     strncpy(key_out, buf + key_start, key_len);
     key_out[key_len] = '\0';
 
@@ -128,16 +107,13 @@ static void read_key(const char *buf, long *pos, long buf_size, char *key_out, i
 
 /* Parsear un objeto JSON {} */
 static void parse_object(const char *buf, long *pos, long buf_size,
-                         const char *current_path, IndexResult *result)
-{
+                         const char *current_path, IndexResult *result) {
     (*pos)++; /* saltamos el { */
 
-    while (*pos < buf_size)
-    {
+    while (*pos < buf_size) {
         skip_whitespace(buf, pos, buf_size);
 
-        if (buf[*pos] == '}')
-        {
+        if (buf[*pos] == '}') {
             (*pos)++;
             break;
         }
@@ -148,8 +124,7 @@ static void parse_object(const char *buf, long *pos, long buf_size,
 
         /* Saltar el : */
         skip_whitespace(buf, pos, buf_size);
-        if (buf[*pos] == ':')
-            (*pos)++;
+        if (buf[*pos] == ':') (*pos)++;
 
         /* Construir el nuevo path */
         char new_path[MAX_PATH_LEN];
@@ -161,8 +136,7 @@ static void parse_object(const char *buf, long *pos, long buf_size,
 
         /* Avanzar la coma si hay */
         skip_whitespace(buf, pos, buf_size);
-        if (*pos < buf_size && buf[*pos] == ',')
-        {
+        if (*pos < buf_size && buf[*pos] == ',') {
             (*pos)++;
         }
     }
@@ -170,17 +144,14 @@ static void parse_object(const char *buf, long *pos, long buf_size,
 
 /* Parsear un array JSON [] */
 static void parse_array(const char *buf, long *pos, long buf_size,
-                        const char *current_path, IndexResult *result)
-{
+                        const char *current_path, IndexResult *result) {
     (*pos)++; /* saltamos el [ */
     int index = 0;
 
-    while (*pos < buf_size)
-    {
+    while (*pos < buf_size) {
         skip_whitespace(buf, pos, buf_size);
 
-        if (buf[*pos] == ']')
-        {
+        if (buf[*pos] == ']') {
             (*pos)++;
             break;
         }
@@ -195,8 +166,7 @@ static void parse_array(const char *buf, long *pos, long buf_size,
 
         /* Avanzar la coma si hay */
         skip_whitespace(buf, pos, buf_size);
-        if (*pos < buf_size && buf[*pos] == ',')
-        {
+        if (*pos < buf_size && buf[*pos] == ',') {
             (*pos)++;
         }
     }
@@ -204,56 +174,47 @@ static void parse_array(const char *buf, long *pos, long buf_size,
 
 /* Parsear cualquier valor JSON y registrarlo en el indice */
 static void parse_value(const char *buf, long *pos, long buf_size,
-                        const char *current_path, IndexResult *result)
-{
+                        const char *current_path, IndexResult *result) {
     skip_whitespace(buf, pos, buf_size);
-    if (*pos >= buf_size)
-        return;
+    if (*pos >= buf_size) return;
 
     char c = buf[*pos];
     long inicio = *pos;
     long fin = *pos;
 
-    if (c == '{')
-    {
+    if (c == '{') {
         fin = find_block_end(buf, *pos, buf_size);
         add_entry(result, current_path, inicio, fin);
         /* Ahora parsear el contenido del objeto para agregar sus hijos al indice */
         parse_object(buf, pos, buf_size, current_path, result);
-    }
-    else if (c == '[')
-    {
+
+    } else if (c == '[') {
         fin = find_block_end(buf, *pos, buf_size);
         add_entry(result, current_path, inicio, fin);
         /* Parsear el contenido del array */
         parse_array(buf, pos, buf_size, current_path, result);
-    }
-    else if (c == '"')
-    {
+
+    } else if (c == '"') {
         fin = find_string_end(buf, *pos, buf_size);
         add_entry(result, current_path, inicio, fin);
         *pos = fin + 1;
-    }
-    else if (isdigit((unsigned char)c) || c == '-')
-    {
+
+    } else if (isdigit((unsigned char)c) || c == '-') {
         fin = find_number_end(buf, *pos, buf_size);
         add_entry(result, current_path, inicio, fin);
         *pos = fin + 1;
-    }
-    else if (strncmp(buf + *pos, "true", 4) == 0)
-    {
+
+    } else if (strncmp(buf + *pos, "true", 4) == 0) {
         fin = *pos + 3;
         add_entry(result, current_path, inicio, fin);
         *pos = fin + 1;
-    }
-    else if (strncmp(buf + *pos, "false", 5) == 0)
-    {
+
+    } else if (strncmp(buf + *pos, "false", 5) == 0) {
         fin = *pos + 4;
         add_entry(result, current_path, inicio, fin);
         *pos = fin + 1;
-    }
-    else if (strncmp(buf + *pos, "null", 4) == 0)
-    {
+
+    } else if (strncmp(buf + *pos, "null", 4) == 0) {
         fin = *pos + 3;
         add_entry(result, current_path, inicio, fin);
         *pos = fin + 1;
@@ -265,22 +226,18 @@ static void parse_value(const char *buf, long *pos, long buf_size,
 /*  Funcion publica                                                     */
 /* ------------------------------------------------------------------ */
 
-int parse_json(const char *buffer, long buf_size, IndexResult *result)
-{
-    if (!buffer || buf_size <= 0 || !result)
-        return -1;
+int parse_json(const char *buffer, long buf_size, IndexResult *result) {
+    if (!buffer || buf_size <= 0 || !result) return -1;
 
     result->count = 0;
     long pos = 0;
 
     skip_whitespace(buffer, &pos, buf_size);
-    if (pos >= buf_size)
-        return -1;
+    if (pos >= buf_size) return -1;
 
     /* El JSON debe empezar con { o [ */
     char first = buffer[pos];
-    if (first != '{' && first != '[')
-    {
+    if (first != '{' && first != '[') {
         fprintf(stderr, "ERROR: el JSON no empieza con { ni [\n");
         return -1;
     }

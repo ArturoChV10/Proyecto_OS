@@ -6,13 +6,11 @@
    Siempre declarar como static o global. */
 static IndexResult result;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     const char *filename = (argc > 1) ? argv[1] : "../tests/datos.json";
 
     FILE *f = fopen(filename, "r");
-    if (!f)
-    {
+    if (!f) {
         perror("No se pudo abrir el archivo");
         return 1;
     }
@@ -22,8 +20,7 @@ int main(int argc, char *argv[])
     rewind(f);
 
     char *buffer = (char *)malloc(size + 1);
-    if (!buffer)
-    {
+    if (!buffer) {
         fprintf(stderr, "Error de memoria\n");
         fclose(f);
         return 1;
@@ -32,8 +29,7 @@ int main(int argc, char *argv[])
     buffer[size] = '\0';
     fclose(f);
 
-    if (parse_json(buffer, size, &result) != 0)
-    {
+    if (parse_json(buffer, size, &result) != 0) {
         fprintf(stderr, "Error al parsear el JSON\n");
         free(buffer);
         return 1;
@@ -42,8 +38,7 @@ int main(int argc, char *argv[])
     printf("Entradas generadas: %d\n\n", result.count);
     printf("%-40s %8s %8s\n", "PATH", "INICIO", "FIN");
     printf("%-40s %8s %8s\n", "----------------------------------------", "--------", "--------");
-    for (int i = 0; i < result.count; i++)
-    {
+    for (int i = 0; i < result.count; i++) {
         printf("%-40s %8ld %8ld\n",
                result.entries[i].path,
                result.entries[i].inicio,
@@ -52,8 +47,7 @@ int main(int argc, char *argv[])
 
     printf("\n--- Verificacion de fragmentos ---\n");
     f = fopen(filename, "r");
-    for (int i = 0; i < result.count; i++)
-    {
+    for (int i = 0; i < result.count; i++) {
         long len = result.entries[i].fin - result.entries[i].inicio + 1;
         char *frag = (char *)malloc(len + 1);
         fseek(f, result.entries[i].inicio, SEEK_SET);

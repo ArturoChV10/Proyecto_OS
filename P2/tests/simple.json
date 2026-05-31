@@ -1,0 +1,9 @@
+{
+"nombre": "Carlos",
+"edad": 30,
+"activo": true,
+"direccion": {
+"ciudad": "San Jose",
+"pais": "Costa Rica"
+}
+}

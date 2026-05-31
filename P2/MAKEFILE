@@ -1,38 +1,55 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -g
-SRCDIR = src
+CC  = gcc
+CXX = g++
+CFLAGS   = -Wall -Wextra -g
+CXXFLAGS = -Wall -Wextra -g
+SRCDIR   = src
+OBJDIR   = obj
 
-# Target principal (lo construimos en etapas siguientes)
-# all: jqindex
+# ---- Target principal ----
+all: jqindex
 
-# Target de prueba del parser
-test_parser: $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
-	$(CC) $(CFLAGS) -o test_parser $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
+# Compilar los modulos C a .o con gcc
+$(OBJDIR)/json_parser.o: $(SRCDIR)/json_parser.c $(SRCDIR)/json_parser.h
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $(SRCDIR)/json_parser.c -o $(OBJDIR)/json_parser.o
 
+$(OBJDIR)/indexer.o: $(SRCDIR)/indexer.c $(SRCDIR)/indexer.h
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $(SRCDIR)/indexer.c -o $(OBJDIR)/indexer.o
+
+$(OBJDIR)/searcher.o: $(SRCDIR)/searcher.c $(SRCDIR)/searcher.h
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $(SRCDIR)/searcher.c -o $(OBJDIR)/searcher.o
+
+# Compilar el .cpp y enlazar todo con g++
+jqindex: $(SRCDIR)/jqindex.cpp $(OBJDIR)/json_parser.o $(OBJDIR)/indexer.o $(OBJDIR)/searcher.o
+	$(CXX) $(CXXFLAGS) -o jqindex \
+		$(SRCDIR)/jqindex.cpp \
+		$(OBJDIR)/json_parser.o \
+		$(OBJDIR)/indexer.o \
+		$(OBJDIR)/searcher.o
+
+# ---- Targets de prueba individuales ----
+test_parser: $(SRCDIR)/test_parser.c $(OBJDIR)/json_parser.o
+	$(CC) $(CFLAGS) -o test_parser $(SRCDIR)/test_parser.c $(OBJDIR)/json_parser.o
+
+test_indexer: $(SRCDIR)/test_indexer.c $(OBJDIR)/json_parser.o $(OBJDIR)/indexer.o
+	$(CC) $(CFLAGS) -o test_indexer \
+		$(SRCDIR)/test_indexer.c \
+		$(OBJDIR)/json_parser.o \
+		$(OBJDIR)/indexer.o
+
+test_searcher: $(SRCDIR)/test_searcher.c $(OBJDIR)/searcher.o $(OBJDIR)/indexer.o $(OBJDIR)/json_parser.o
+	$(CC) $(CFLAGS) -o test_searcher \
+		$(SRCDIR)/test_searcher.c \
+		$(OBJDIR)/searcher.o \
+		$(OBJDIR)/indexer.o \
+		$(OBJDIR)/json_parser.o
+
+# ---- Limpieza ----
 clean:
-	rm -f test_parser jqindex
+	rm -rf $(OBJDIR)
+	rm -f jqindex test_parser test_indexer test_searcher
+	rm -f tests/*.jnx
 
-.PHONY: clean
-
-
-# DESCOMENTAR EN SEGUNDA ITERACIÓN
-# CC = gcc
-# CFLAGS = -Wall -Wextra -g
-# SRCDIR = src
- 
-# # Target principal (lo construimos en etapas siguientes)
-# # all: jqindex
- 
-# # Target de prueba del parser
-# test_parser: $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
-# 	$(CC) $(CFLAGS) -o test_parser $(SRCDIR)/test_parser.c $(SRCDIR)/json_parser.c
- 
-# # Target de prueba del indexador (parser + indexer juntos)
-# test_indexer: $(SRCDIR)/test_indexer.c $(SRCDIR)/json_parser.c $(SRCDIR)/indexer.c
-# 	$(CC) $(CFLAGS) -o test_indexer $(SRCDIR)/test_indexer.c $(SRCDIR)/json_parser.c $(SRCDIR)/indexer.c
- 
-# clean:
-# 	rm -f test_parser test_indexer jqindex
-# 	rm -f tests/*.jnx
- 
-# .PHONY: clean
+.PHONY: all clean

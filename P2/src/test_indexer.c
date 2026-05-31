@@ -8,17 +8,12 @@
 static IndexResult result;
 static IndexResult result2;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     const char *json_path = (argc > 1) ? argv[1] : "../tests/datos.json";
 
     /* 1. Leer el archivo JSON */
     FILE *f = fopen(json_path, "r");
-    if (!f)
-    {
-        perror("No se pudo abrir el JSON");
-        return 1;
-    }
+    if (!f) { perror("No se pudo abrir el JSON"); return 1; }
 
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
@@ -30,8 +25,7 @@ int main(int argc, char *argv[])
     fclose(f);
 
     /* 2. Parsear */
-    if (parse_json(buffer, size, &result) != 0)
-    {
+    if (parse_json(buffer, size, &result) != 0) {
         fprintf(stderr, "Error al parsear\n");
         free(buffer);
         return 1;
@@ -45,15 +39,13 @@ int main(int argc, char *argv[])
     get_jnx_path(json_path, jnx_path, sizeof(jnx_path));
     printf("Escribiendo indice en: %s\n", jnx_path);
 
-    if (write_index(jnx_path, &result) != 0)
-    {
+    if (write_index(jnx_path, &result) != 0) {
         fprintf(stderr, "Error escribiendo el .jnx\n");
         return 1;
     }
 
     /* 4. Leer el .jnx de vuelta y verificar que coincide */
-    if (read_index(jnx_path, &result2) != 0)
-    {
+    if (read_index(jnx_path, &result2) != 0) {
         fprintf(stderr, "Error leyendo el .jnx\n");
         return 1;
     }
@@ -65,8 +57,7 @@ int main(int argc, char *argv[])
     printf("%-40s %8s %8s\n", "PATH", "INICIO", "FIN");
     printf("%-40s %8s %8s\n",
            "----------------------------------------", "--------", "--------");
-    for (int i = 0; i < result2.count; i++)
-    {
+    for (int i = 0; i < result2.count; i++) {
         printf("%-40s %8ld %8ld\n",
                result2.entries[i].path,
                result2.entries[i].inicio,
@@ -74,12 +65,9 @@ int main(int argc, char *argv[])
     }
 
     /* 6. Verificar que los counts coinciden */
-    if (result.count == result2.count)
-    {
+    if (result.count == result2.count) {
         printf("\nOK: el indice se escribio y leyo correctamente (%d entradas)\n", result.count);
-    }
-    else
-    {
+    } else {
         printf("\nERROR: se escribieron %d entradas pero se leyeron %d\n",
                result.count, result2.count);
     }

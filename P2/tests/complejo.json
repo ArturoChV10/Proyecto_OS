@@ -1,0 +1,21 @@
+{
+"empresa": "TEC",
+"departamentos": [
+{
+"nombre": "Computo",
+"jefe": "Maria",
+"empleados": [
+{"id": 1, "nombre": "Pedro", "salario": 1500},
+{"id": 2, "nombre": "Laura", "salario": 1800}
+]
+},
+{
+"nombre": "Matematica",
+"jefe": "Roberto",
+"empleados": [
+{"id": 3, "nombre": "Sofia", "salario": 1600}
+]
+}
+],
+"activo": true
+}

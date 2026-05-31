@@ -9,16 +9,18 @@
 #define MAX_PATH_LEN 512
 
 /* Una entrada del indice: path + donde empieza y termina el valor en el archivo */
-typedef struct
-{
+/* IMPORTANTE: IndexResult es grande (~5MB). Siempre declarar como static o global,
+   nunca como variable local en el stack. */
+typedef struct {
     char path[MAX_PATH_LEN];
     long inicio;
     long fin;
 } IndexEntry;
 
 /* Resultado del parseo - lista de entradas y cuantas hay */
-typedef struct
-{
+/* IMPORTANTE: IndexResult es grande (~5MB). Siempre declarar como static o global,
+   nunca como variable local en el stack. */
+typedef struct {
     IndexEntry entries[MAX_ENTRIES];
     int count;
 } IndexResult;
